@@ -1,5 +1,5 @@
 from beanie import init_beanie
-from fastapi import Depends, FastAPI
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import db
