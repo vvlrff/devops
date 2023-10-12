@@ -1,41 +1,27 @@
-from fastapi import FastAPI
+from beanie import init_beanie
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.auth.base_config import auth_backend, fastapi_users
-from app.auth.schemas import UserCreate, UserRead
-
-from app.operations.router import router as router_operation
+from app.database import db
+from app.auth.router import router as router_auth
+from app.auth.models import User
 
 
 app = FastAPI(
-    title="Cloud Storage API"
+    title="MongoDB app"
 )
 
-app.include_router(
-    fastapi_users.get_auth_router(auth_backend),
-    prefix="/auth",
-    tags=["Auth"],
-)
 
-app.include_router(
-    fastapi_users.get_register_router(UserRead, UserCreate),
-    prefix="/auth",
-    tags=["Auth"],
-)
+@app.on_event("startup")
+async def on_startup():
+    await init_beanie(
+        database=db,
+        document_models=[
+            User
+        ],
+    )
 
-app.include_router(
-    fastapi_users.get_verify_router(UserRead),
-    prefix="/auth",
-    tags=["Auth"],
-)
-
-app.include_router(
-    fastapi_users.get_reset_password_router(),
-    prefix="/auth",
-    tags=["Auth"],
-)
-
-app.include_router(router_operation)
+app.include_router(router_auth)
 
 origins = [
     "http://localhost",
@@ -52,5 +38,6 @@ app.add_middleware(
     allow_headers=["Content-Type", "Set-Cookie", "Access-Control-Allow-Headers", "Access-Control-Allow-Origin",
                    "Authorization"],
 )
+
 
 
